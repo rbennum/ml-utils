@@ -5,6 +5,10 @@ import os
 
 from datetime import datetime
 from typing import Optional
+from sklearn.utils.validation import check_is_fitted
+from sklearn.exceptions import NotFittedError
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
 
 
 def skim_data(data) -> pd.DataFrame:
@@ -80,3 +84,42 @@ def get_time(time: Optional[datetime] = None) -> str:
         time = datetime.now()
     timestamp_str = time.strftime("%Y_%m_%d_%H_%M_%S")
     return timestamp_str
+
+
+def audit_deep(estimator, name="root", indent=0):
+    """
+    Recursively inspects a scikit-learn estimator, pipeline, or ColumnTransformer
+    to verify the fitting status of all internal components.
+
+    This utility traverses nested structures (like pipelines within column
+    transformers) and prints a visual tree indicating which specific steps
+    or transformers are currently fitted or unfitted.
+
+    Parameters
+    ----------
+    estimator : estimator object
+        The scikit-learn compatible estimator or meta-estimator to audit.
+    name : str, default="root"
+        The display name for the current level of the recursion.
+    indent : int, default=0
+        The current indentation level for the printed output.
+    """
+    space = "  " * indent
+    try:
+        check_is_fitted(estimator)
+        print(f"{space}[✓] {name} is fitted.")
+    except NotFittedError:
+        print(f"{space}[X] {name} IS NOT FITTED!")
+
+    if isinstance(estimator, Pipeline):
+        for step_name, step_obj in estimator.named_steps.items():
+            audit_deep(step_obj, name=f"Step: {step_name}", indent=indent + 1)
+
+    elif isinstance(estimator, ColumnTransformer):
+        if hasattr(estimator, "transformers_"):
+            for trans_name, trans_obj, _ in estimator.transformers_:
+                if trans_name == "remainder":
+                    continue
+                audit_deep(
+                    trans_obj, name=f"Transformer: {trans_name}", indent=indent + 1
+                )
