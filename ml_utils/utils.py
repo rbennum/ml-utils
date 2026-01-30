@@ -11,10 +11,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
 
-def skim_data(data) -> pd.DataFrame:
+def skim_data(data: pd.DataFrame) -> pd.DataFrame:
     """
-    Skims the dataframe for features, feature types, null, negative, and
-    zero values percentage, and the number of unique values.
+    Skims the dataframe for summary statistics including nulls, negatives,
+    uniques, and min/max values.
 
     :param DataFrame data: The input dataframe.
     :return: A dataframe contains the summary of the input dataframe.
@@ -28,6 +28,8 @@ def skim_data(data) -> pd.DataFrame:
         numeric_stats[col] = {
             "neg_%": round((data[col] < 0).mean() * 100, 3),
             "zero_%": round((data[col] == 0).mean() * 100, 3),
+            "min": data[col].min(),
+            "max": data[col].max(),
         }
 
     skimmed_data = pd.DataFrame(
@@ -41,6 +43,8 @@ def skim_data(data) -> pd.DataFrame:
             "zero_%": [
                 numeric_stats.get(col, {}).get("zero_%", "-") for col in data.columns
             ],
+            "min": [numeric_stats[col]["min"] for col in data.columns],
+            "max": [numeric_stats[col]["max"] for col in data.columns],
             "n_unique": data.nunique().values,
             "unique_%": round(data.nunique() / len(data) * 100, 2).values,
             "sample_values": [
