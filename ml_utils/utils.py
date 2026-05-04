@@ -21,8 +21,6 @@ def skim_data(data: pd.DataFrame) -> pd.DataFrame:
     :rtype: DataFrame
     """
     numeric_cols = set(data.select_dtypes(include=[np.number]).columns)
-    min_values = data.min()
-    max_values = data.max()
     unique_counts = data.nunique()
 
     numeric_meta = {}
@@ -30,6 +28,8 @@ def skim_data(data: pd.DataFrame) -> pd.DataFrame:
         numeric_meta[col] = {
             "neg_%": round((data[col] < 0).mean() * 100, 3),
             "zero_%": round((data[col] == 0).mean() * 100, 3),
+            "min": data[col].min(),
+            "max": data[col].max(),
         }
 
     skimmed_data = pd.DataFrame(
@@ -43,8 +43,8 @@ def skim_data(data: pd.DataFrame) -> pd.DataFrame:
             "zero_%": [
                 numeric_meta.get(col, {}).get("zero_%", "-") for col in data.columns
             ],
-            "min": [min_values.get(col, "-") for col in data.columns],
-            "max": [max_values.get(col, "-") for col in data.columns],
+            "min": [numeric_meta.get(col, {}).get("min", "-") for col in data.columns],
+            "max": [numeric_meta.get(col, {}).get("max", "-") for col in data.columns],
             "n_unique": unique_counts.values,
             "unique_%": round(unique_counts / len(data) * 100, 2).values,
             "sample_values": [

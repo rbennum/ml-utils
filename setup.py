@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ml_utils",
-    version="0.0.4",
+    version="0.0.5",
     author="Bening Ranum",
     author_email="dev.rbennum@gmail.com",
     description="A collection of my personal utility functions for ML projects.",
